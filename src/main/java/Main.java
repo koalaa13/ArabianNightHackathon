@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import api.ApiController;
 import api.Controller;
 import logic.Movement;
+import logic.Shield;
 import model.MineTransport;
 import model.Point;
 import model.WorldInfo;
@@ -26,7 +27,8 @@ public class Main {
             Thread.sleep(400);
             var req = new Request().setTransports(
                     info.transports.stream().map(t -> new RequestTransport()).toList());
-            Movement.getAccelerations(info, req);
+            Movement.setAccelerations(info, req);
+            Shield.setShields(info, req);
             info = controller.getInfo(req);
             visualizer.setWorld(info);
             visualizer.updateGraph();

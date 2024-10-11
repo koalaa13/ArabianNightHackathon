@@ -56,7 +56,8 @@ public class Movement {
         }
     }
 
-    public static void getAccelerations(WorldInfo info, Request req) {
+    // TODO: Visualize cover status (is it able to move to coin)
+    public static void setAccelerations(WorldInfo info, Request req) {
         for (var we : req.transports) {
             var acc = getSimpleAcceleration(info, we);
             we.setAcceleration(acc);
