@@ -1,9 +1,6 @@
 package logic;
 
-import model.Coin;
-import model.MineTransport;
-import model.Point;
-import model.WorldInfo;
+import model.*;
 import model.request.Request;
 import model.request.RequestTransport;
 
@@ -11,21 +8,24 @@ import java.util.*;
 
 public class Movement {
     private static Point accToPoint(WorldInfo info, MineTransport cur, Point dest) {
-        var acc = new Point(
-                -cur.velocity.x / 2 + (dest.x - (cur.x + cur.velocity.x)),
-                -cur.velocity.y / 2 + (dest.y - (cur.y + cur.velocity.y))
-        );
-        return acc.shrink(info.maxAccel * 3 / 4);
+        var acc = cur.mul(-0.5)
+                .add(cur.anomalyAcceleration.mul(-1))
+                .add(dest.add(cur.add(cur.velocity).mul(-1)).mul(0.2));
+        return acc.shrink(info.maxAccel * 4 / 5);
     }
 
-    private static double distFromSegmentToPoint(Point a, MineTransport cur, Point c) {
-        return 0.0;
+    private static double distFromCoverToPoint(Anomaly anoma, MineTransport cur, Point acc, double time) {
+        return cur.afterNSeconds(acc, time).distTo(anoma.afterNSeconds(time));
     }
 
     private static boolean isDangerous(WorldInfo info, MineTransport cur, Point c) {
         boolean res = false;
+        var chosenAcc = accToPoint(info, cur, c);
         for (var anoma : info.anomalies) {
-            var dist = distFromSegmentToPoint(anoma, cur, c);
+            var dist = Double.MAX_VALUE;
+            for (double t = 0.0; t < 1.9; t += 0.5) {
+                dist = Math.min(dist, distFromCoverToPoint(anoma, cur, chosenAcc, t));
+            }
             res |= dist < 2 * Math.min(anoma.radius, anoma.effectiveRadius);
         }
         return res;
@@ -34,7 +34,7 @@ public class Movement {
     private static Optional<Coin> getBestCoin(WorldInfo info, MineTransport cur) {
         return info.bounties.stream()
                 .filter(c -> !isDangerous(info, cur, c))
-                .filter(c -> c.distTo(cur) < 150)
+                .filter(c -> c.distTo(cur) < 300)
                 .max(Comparator.comparingDouble(c -> c.points - c.distTo(cur)));
     }
 

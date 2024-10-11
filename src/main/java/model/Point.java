@@ -30,6 +30,14 @@ public class Point {
         return new Point(to.x - x, to.y - y).length();
     }
 
+    public Point add(Point oth) {
+        return new Point(x + oth.x, y + oth.y);
+    }
+
+    public Point mul(double val) {
+        return new Point(x * val, y * val);
+    }
+
     @Override
     public String toString() {
         return "Point{" +

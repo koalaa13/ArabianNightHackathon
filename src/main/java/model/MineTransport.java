@@ -11,6 +11,12 @@ public class MineTransport extends HasVelocity {
     public double shieldLeftMs;
     public String status;
 
+    public Point afterNSeconds(Point acc, double time) {
+        var totalAcc = acc.add(anomalyAcceleration);
+        var shift = velocity.mul(time).add(totalAcc.mul(time * time / 2));
+        return this.add(shift);
+    }
+
     @Override
     public String toString() {
         return "MineTransport{" +
