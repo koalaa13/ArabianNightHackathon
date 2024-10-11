@@ -1,13 +1,9 @@
 package logic;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import model.EnemyTransport;
 import model.HasVelocity;
@@ -65,46 +61,52 @@ public class Shooting {
         return canShootPoint(toShoot, worldInfo).size();
     }
 
-    public static double getShootingPointCost(Point toShoot, WorldInfo worldInfo) {
+    public static Metric getShootingPointMetric(Point toShoot, WorldInfo worldInfo) {
         long canShootThisPointCount = getCanShootPointCount(toShoot, worldInfo);
         double canDealDamage = canShootThisPointCount * worldInfo.attackDamage;
-        double cost = worldInfo.enemies
+        Metric positive = worldInfo.enemies
                 .stream()
                 .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
                 .filter(e -> e.health <= canDealDamage)
                 .filter(e -> e.shieldLeftMs == 0)
-                .map(e -> e.killBounty)
-                .reduce(0.0, Double::sum);
+                .map(e -> new Metric(e.killBounty, Math.min(e.health, canDealDamage)))
+                .reduce(
+                        new Metric(0.0, 0.0),
+                        (was, toAdd) -> new Metric(was.cost + toAdd.cost, was.health + toAdd.health)
+                );
         // Если гасим по своим, то надо это учесть
-        cost += worldInfo.transports
+        Metric negative = worldInfo.transports
                 .stream()
                 .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
                 .filter(t -> t.health <= canDealDamage)
                 .filter(t -> t.shieldLeftMs == 0)
-                .map(t -> -worldInfo.points * DEATH_LOSE_PERCENT)
-                .reduce(0.0, Double::sum);
+                .map(t -> new Metric(worldInfo.points * DEATH_LOSE_PERCENT, Math.min(t.health, canDealDamage)))
+                .reduce(
+                        new Metric(0.0, 0.0),
+                        (was, toAdd) -> new Metric(was.cost + toAdd.cost, was.health + toAdd.health)
+                );
 
-        return cost;
+        return new Metric(positive.cost - negative.cost, positive.health - negative.health);
     }
-
-    public static double getShootingPointHealthCost(Point toShoot, WorldInfo worldInfo) {
-        long canShootThisPointCount = getCanShootPointCount(toShoot, worldInfo);
-        double canDealDamage = canShootThisPointCount * worldInfo.attackDamage;
-        double cost = worldInfo.enemies
-                .stream()
-                .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
-                .filter(e -> e.shieldLeftMs == 0)
-                .map(e -> Math.min(e.health, canDealDamage))
-                .reduce(0.0, Double::sum);
-        // Если гасим по своим, то надо это учесть
-        cost += worldInfo.transports
-                .stream()
-                .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
-                .filter(t -> t.shieldLeftMs == 0)
-                .map(t -> -Math.min(t.health, canDealDamage))
-                .reduce(0.0, Double::sum);
-        return cost;
-    }
+//
+//    public static double getShootingPointHealthCost(Point toShoot, WorldInfo worldInfo) {
+//        long canShootThisPointCount = getCanShootPointCount(toShoot, worldInfo);
+//        double canDealDamage = canShootThisPointCount * worldInfo.attackDamage;
+//        double cost = worldInfo.enemies
+//                .stream()
+//                .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
+//                .filter(e -> e.shieldLeftMs == 0)
+//                .map(e -> Math.min(e.health, canDealDamage))
+//                .reduce(0.0, Double::sum);
+//        // Если гасим по своим, то надо это учесть
+//        cost += worldInfo.transports
+//                .stream()
+//                .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
+//                .filter(t -> t.shieldLeftMs == 0)
+//                .map(t -> -Math.min(t.health, canDealDamage))
+//                .reduce(0.0, Double::sum);
+//        return cost;
+//}
 
     public static class Metric {
         public double cost;
@@ -132,10 +134,7 @@ public class Shooting {
                         allPoints.add(p);
                         metricMap.put(
                                 p,
-                                new Metric(
-                                        getShootingPointCost(p, info),
-                                        getShootingPointHealthCost(p, info)
-                                )
+                                getShootingPointMetric(p, info)
                         );
                     }
                 });
