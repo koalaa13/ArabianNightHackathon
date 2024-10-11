@@ -1,6 +1,6 @@
 package model;
 
-public class MineTransport extends HasVelocity{
+public class MineTransport extends HasVelocity {
     public Point anomalyAcceleration;
     public double attackCooldownMs;
     public int deathCount;

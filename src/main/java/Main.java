@@ -1,8 +1,11 @@
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import api.ApiController;
 import api.Controller;
+import logic.Movement;
 import model.MineTransport;
 import model.Point;
 import model.WorldInfo;
@@ -18,23 +21,17 @@ public class Main {
         final Controller controller = ApiController.getTestInstance();
         WorldInfo info = controller.getInfo(EMPTY_REQUEST);
         GraphVisualizer visualizer = new GraphVisualizer(info);
+        long startTime = System.currentTimeMillis();
         for (int it = 0; ; ++it) {
             Thread.sleep(400);
-            String id = info.transports.get(0).id;
-
-            info = controller.getInfo(
-                    new Request()
-                            .setTransports(List.of(new RequestTransport()
-                            .setId(id).setAcceleration(new Point(1.0, 1.0))))
-            );
+            var req = new Request().setTransports(
+                    info.transports.stream().map(t -> new RequestTransport()).toList());
+            Movement.getAccelerations(info, req);
+            info = controller.getInfo(req);
             visualizer.setWorld(info);
             visualizer.updateGraph();
-
-            MineTransport transport = info.transports.stream()
-                    .filter(t -> t.id.equals(id))
-                    .toList().get(0);
-
-            System.out.println(transport.velocity);
+            long passedTime = System.currentTimeMillis() - startTime;
+            System.out.println("Passed: " + passedTime);
         }
     }
 }
