@@ -8,28 +8,27 @@ import model.Point;
 import model.WorldInfo;
 import model.request.Request;
 import model.request.RequestTransport;
+import visual.GraphVisualizer;
 
 public class Main {
     public static final Request EMPTY_REQUEST = new Request()
             .setTransports(Collections.emptyList());
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         final Controller controller = ApiController.getTestInstance();
         WorldInfo info = controller.getInfo(EMPTY_REQUEST);
-
+        GraphVisualizer visualizer = new GraphVisualizer(info);
         for (int it = 0; ; ++it) {
-            try {
-                Thread.sleep(400);
-            } catch (InterruptedException ignored) {
-            }
+            Thread.sleep(400);
             String id = info.transports.get(0).id;
 
-            info = controller.getInfo(it > 0 ? EMPTY_REQUEST :
+            info = controller.getInfo(
                     new Request()
                             .setTransports(List.of(new RequestTransport()
-                                    .setId(id)
-                                    .setAcceleration(new Point(1.0, 1.0))))
+                            .setId(id).setAcceleration(new Point(1.0, 1.0))))
             );
+            visualizer.setWorld(info);
+            visualizer.updateGraph();
 
             MineTransport transport = info.transports.stream()
                     .filter(t -> t.id.equals(id))
