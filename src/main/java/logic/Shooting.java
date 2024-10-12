@@ -126,6 +126,9 @@ public class Shooting {
         });
         for (int i = 0; readyToAttackCount > res.size() && i < allPoints.size(); ++i) {
             Point p = allPoints.get(i);
+            if (metricMap.get(p).cost <= 0.0) {
+                continue;
+            }
             for (MineTransport t : canShootTransport) {
                 if (t.afterNSeconds(0.4).distTo(p) <= info.attackRange) {
                     res.putIfAbsent(t.id, p);
