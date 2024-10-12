@@ -36,6 +36,10 @@ public class Point {
         return new Point(x + oth.x, y + oth.y);
     }
 
+    public Point sub(Point oth) {
+        return new Point(x - oth.x, y - oth.y);
+    }
+
     public Point mul(double val) {
         return new Point(x * val, y * val);
     }
@@ -63,5 +67,9 @@ public class Point {
     @Override
     public int hashCode() {
         return Objects.hash(x, y);
+    }
+
+    public Point duplicate() {
+        return new Point(x, y);
     }
 }

@@ -11,23 +11,25 @@ public class MineTransport extends HasVelocity implements Cloneable {
     public int shieldLeftMs;
     public String status;
 
-//    private Point getShift(Point acc, double time) {
-//        return velocity.mul(time).add(totalAcc.mul(time * time / 2));
-//    }
-
-    public MineTransport afterNSeconds(Point acc, double time) {
+    public MineTransport afterNSeconds(double time) {
         try {
             var t = (MineTransport) clone();
-//            if (time > 0.4) {
-//
-//            } else {
-//
-//            }
-            var totalAcc = acc.add(anomalyAcceleration);
+            var totalAcc = selfAcceleration.add(anomalyAcceleration);
             var shift = velocity.mul(time).add(totalAcc.mul(time * time / 2));
             t.x += shift.x;
             t.y += shift.y;
+            t.velocity = t.velocity.duplicate().add(totalAcc.mul(time));
             return t;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public MineTransport afterNSecondsNoDelay(Point acc, double time) {
+        try {
+            var t = (MineTransport) clone();
+            t.selfAcceleration = acc;
+            return t.afterNSeconds(time);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
