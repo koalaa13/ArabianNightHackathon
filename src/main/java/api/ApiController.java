@@ -2,6 +2,7 @@ package api;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.WorldInfo;
@@ -25,7 +26,9 @@ public class ApiController implements Controller {
 
     private ApiController(boolean isTest) {
         this.isTest = isTest;
-        this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.objectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public static ApiController getTestInstance() {
@@ -52,7 +55,6 @@ public class ApiController implements Controller {
         if (response.getStatusLine().getStatusCode() != 200) {
             String errorMessage = objectMapper.readTree(content).get("error").asText();
             System.err.println("Code " + response.getStatusLine().getStatusCode() + ": " + errorMessage);
-            return null;
         }
         return objectMapper.readValue(content, okResponseClass);
     }
@@ -62,6 +64,9 @@ public class ApiController implements Controller {
         final String url = getApiUrl();
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             final String json = objectMapper.writeValueAsString(requestDao);
+            System.out.println("----------");
+            System.out.println(json);
+            System.out.println("---------");
             final StringEntity entity = new StringEntity(json);
 
             HttpPost request = new HttpPost(url + "/play/magcarp/player/move");

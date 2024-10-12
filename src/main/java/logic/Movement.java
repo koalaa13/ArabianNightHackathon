@@ -38,7 +38,7 @@ public class Movement {
     }
 
     private static Point getSimpleAcceleration(WorldInfo info, RequestTransport we) {
-        var destPoint = new Point(info.mapSize.x * 9 / 10, info.mapSize.y * 9 / 10);
+        var destPoint = new Point(info.mapSize.x * 5 / 10, info.mapSize.y * 5 / 10);
         var radius = Math.max(info.mapSize.x, info.mapSize.y) / 10;
         var cur = info.transports.stream().filter(t -> t.id.equals(we.id)).findFirst().get();
         cur = cur.afterNSeconds(cur.selfAcceleration, 0.4);

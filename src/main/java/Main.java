@@ -1,15 +1,10 @@
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import api.ApiController;
 import api.Controller;
 import logic.Movement;
 import logic.Shield;
 import logic.Shooting;
-import model.MineTransport;
-import model.Point;
 import model.WorldInfo;
 import model.request.Request;
 import model.request.RequestTransport;
@@ -38,7 +33,7 @@ public class Main {
             long t2 = System.currentTimeMillis();
             Shield.setShields(info, req);
             long t3 = System.currentTimeMillis();
-//            Shooting.setShoots(info, req);
+            Shooting.setShoots(info, req);
             long t4 = System.currentTimeMillis();
             shootTime += t4 - t3;
             moveTime += t2 - t1;

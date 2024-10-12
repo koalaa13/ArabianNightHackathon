@@ -1,10 +1,14 @@
 package model.request;
 
+import api.IntPointSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import model.IntPoint;
 import model.Point;
 
 public class RequestTransport {
     public Point acceleration;
     public boolean activateShield;
+    @JsonSerialize(using = IntPointSerializer.class)
     public Point attack;
     public String id;
 
