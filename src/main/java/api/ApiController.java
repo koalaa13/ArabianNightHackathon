@@ -1,10 +1,13 @@
 package api;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import model.WorldInfo;
 import model.request.Request;
 import org.apache.http.HttpResponse;
@@ -39,6 +42,7 @@ public class ApiController implements Controller {
     }
 
     private static ApiController instance = null;
+
     public static ApiController getInstance() {
         if (instance == null) {
             instance = new ApiController(false);
@@ -52,11 +56,13 @@ public class ApiController implements Controller {
 
     private <T> T responseHandling(HttpResponse response, Class<? extends T> okResponseClass) throws IOException {
         var content = response.getEntity().getContent();
-        if (response.getStatusLine().getStatusCode() != 200) {
-            String errorMessage = objectMapper.readTree(content).get("error").asText();
-            System.err.println("Code " + response.getStatusLine().getStatusCode() + ": " + errorMessage);
+        JsonNode node = objectMapper.readTree(content);
+        var errors = (ArrayNode) node.get("errors");
+        if (!errors.isEmpty()) {
+            System.err.println("Some errors!!!!");
+            System.err.println(errors);
         }
-        return objectMapper.readValue(content, okResponseClass);
+        return objectMapper.treeToValue(node, okResponseClass);
     }
 
     @Override

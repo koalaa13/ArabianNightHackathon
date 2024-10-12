@@ -53,7 +53,7 @@ public class Shooting {
 
     private static List<MineTransport> canShootPoint(Point toShoot, WorldInfo worldInfo) {
         return worldInfo.transports.stream()
-                .filter(t -> t.attackCooldownMs == 0)
+                .filter(Shooting::canTransportShoot)
                 .filter(t -> toShoot.distTo(t) <= worldInfo.attackRange)
                 .toList();
     }
@@ -68,9 +68,13 @@ public class Shooting {
         Metric positive = worldInfo.enemies
                 .stream()
                 .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
-                .filter(e -> e.health <= canDealDamage)
                 .filter(e -> e.shieldLeftMs == 0)
-                .map(e -> new Metric(e.killBounty, Math.min(e.health, canDealDamage)))
+                .map(e -> {
+                    double cost = e.health > canDealDamage ?
+                            0.0 :
+                            e.killBounty;
+                    return new Metric(cost, Math.min(e.health, canDealDamage));
+                })
                 .reduce(
                         new Metric(0.0, 0.0),
                         (was, toAdd) -> new Metric(was.cost + toAdd.cost, was.health + toAdd.health)
@@ -79,9 +83,13 @@ public class Shooting {
         Metric negative = worldInfo.transports
                 .stream()
                 .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
-                .filter(t -> t.health <= canDealDamage)
                 .filter(t -> t.shieldLeftMs == 0)
-                .map(t -> new Metric(worldInfo.points * DEATH_LOSE_PERCENT, Math.min(t.health, canDealDamage)))
+                .map(t -> {
+                    double cost = t.health > canDealDamage ?
+                            0.0 :
+                            worldInfo.points * DEATH_LOSE_PERCENT;
+                    return new Metric(cost, Math.min(t.health, canDealDamage));
+                })
                 .reduce(
                         new Metric(0.0, 0.0),
                         (was, toAdd) -> new Metric(was.cost + toAdd.cost, was.health + toAdd.health)
@@ -89,25 +97,6 @@ public class Shooting {
 
         return new Metric(positive.cost - negative.cost, positive.health - negative.health);
     }
-//
-//    public static double getShootingPointHealthCost(Point toShoot, WorldInfo worldInfo) {
-//        long canShootThisPointCount = getCanShootPointCount(toShoot, worldInfo);
-//        double canDealDamage = canShootThisPointCount * worldInfo.attackDamage;
-//        double cost = worldInfo.enemies
-//                .stream()
-//                .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
-//                .filter(e -> e.shieldLeftMs == 0)
-//                .map(e -> Math.min(e.health, canDealDamage))
-//                .reduce(0.0, Double::sum);
-//        // Если гасим по своим, то надо это учесть
-//        cost += worldInfo.transports
-//                .stream()
-//                .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
-//                .filter(t -> t.shieldLeftMs == 0)
-//                .map(t -> -Math.min(t.health, canDealDamage))
-//                .reduce(0.0, Double::sum);
-//        return cost;
-//}
 
     public static class Metric {
         public double cost;
@@ -119,15 +108,18 @@ public class Shooting {
         }
     }
 
+    private static boolean canTransportShoot(MineTransport t) {
+        return t.attackCooldownMs == 0 && t.status.equals("alive");
+    }
+
     // id -> Point
     public static Map<String, Point> getPointsToShoot(WorldInfo info) {
         Map<String, Point> res = new HashMap<>();
-        long readyToAttackCount = info.transports.stream().filter(t -> t.attackCooldownMs == 0).count();
+        List<MineTransport> canShootTransport = info.transports.stream().filter(Shooting::canTransportShoot).toList();
+        long readyToAttackCount = canShootTransport.size();
         Map<Point, Metric> metricMap = new HashMap<>();
         List<Point> allPoints = new ArrayList<>();
-        info.transports.stream()
-                .filter(t -> t.attackCooldownMs == 0)
-                .forEach(t -> {
+        canShootTransport.forEach(t -> {
                     for (var p : getPointsCanShoot(info, t)) {
                         if (metricMap.containsKey(p)) {
                             continue;
@@ -149,10 +141,7 @@ public class Shooting {
         });
         for (int i = 0; readyToAttackCount > res.size() && i < allPoints.size(); ++i) {
             Point p = allPoints.get(i);
-            if (metricMap.get(p).cost <= 0 && metricMap.get(p).health <= 0) {
-                break;
-            }
-            for (MineTransport t : info.transports) {
+            for (MineTransport t : canShootTransport) {
                 if (t.distTo(p) <= info.attackRange) {
                     res.putIfAbsent(t.id, p);
                 }
