@@ -1,6 +1,7 @@
 package visual;
 
 
+import logic.Movement;
 import model.Anomaly;
 import model.MineTransport;
 import model.Point;
@@ -19,7 +20,10 @@ public class GraphVisualizer extends JFrame {
 
     private double startX;
     private double startY;
+    private double endX;
+    private double endY;
     private double zoom;
+    private boolean greedy = false;
 
     private WorldInfo world;
     private Request req;
@@ -70,6 +74,11 @@ public class GraphVisualizer extends JFrame {
         sidePanel.add(buttonZoom);
 
         sidePanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        JCheckBox cb2 = new JCheckBox("Greedy");
+        cb2.addItemListener(e -> setGreedyMode(cb2.isSelected()));
+        sidePanel.add(cb2);
+
+        sidePanel.add(Box.createRigidArea(new Dimension(0, 15)));
         status = new JLabel();
         sidePanel.add(status);
 
@@ -85,13 +94,17 @@ public class GraphVisualizer extends JFrame {
     private synchronized void resetZoom() {
         startX = 0.0;
         startY = 0.0;
+        endX = world.mapSize.x;
+        endY = world.mapSize.y;
         zoom = getZoom();
         updateGraph();
     }
 
     private synchronized void setZoom() {
-        startX = world.mapSize.x * 2 / 3;
-        startY = world.mapSize.y * 2 / 3;
+        startX = world.mapSize.x * 2 / 5;
+        startY = world.mapSize.y * 2 / 5;
+        endX = world.mapSize.x * 3 / 5;
+        endY = world.mapSize.y * 3 / 5;
         zoom = getZoom();
         updateGraph();
     }
@@ -100,10 +113,12 @@ public class GraphVisualizer extends JFrame {
         String res =
                 "Id: " + we.id + "<br>" +
                 "Health: " + we.health + "<br>" +
-                "X: " + (int) we.x + " Y: " + (int) we.y + "<br>";
+                "X: " + (int) we.x + " Y: " + (int) we.y + "<br>" +
+                "VX: " + (int) we.velocity.x + " VY: " + (int) we.velocity.y + " ABS: " + (int) we.velocity.length() + "<br>" +
+                "Collect money: " + Movement.inMoneyZone(we, Movement.moneyCenter(world)) + "<br>";
         if (weR.isPresent()) {
-            res += "-->X: " + (int) weR.get().acceleration.x +
-                    " -->Y: " + (int) weR.get().acceleration.y + "<br>";
+            res += "AX: " + (int) weR.get().acceleration.x + " AY: " + (int) weR.get().acceleration.y +
+                    " ABS: " + (int) weR.get().acceleration.length() + "<br>";
         }
         return res;
     }
@@ -125,7 +140,10 @@ public class GraphVisualizer extends JFrame {
         for (var we : world.transports) {
             g.setColor(we.shieldLeftMs > 0 ? Color.BLUE : Color.CYAN);
             drawPoint(g, we);
-            var weR = req.transports.stream().filter(t -> t.id.equals(we.id)).findAny();
+            Optional<RequestTransport> weR = Optional.empty();
+            if (req != null) {
+                weR = req.transports.stream().filter(t -> t.id.equals(we.id)).findAny();
+            }
             if (weR.isPresent()) {
                 g.setColor(Color.BLACK);
                 drawLine(g, we, we.add(weR.get().acceleration.mul(0.7 / zoom)));
@@ -139,7 +157,7 @@ public class GraphVisualizer extends JFrame {
     }
 
     private double getZoom() {
-        return W / (world.mapSize.x - startX);
+        return W / (endX - startX);
     }
 
     private int pixelX(double pointX) {
@@ -188,5 +206,13 @@ public class GraphVisualizer extends JFrame {
     public synchronized void setWorldAndReq(WorldInfo world, Request req) {
         this.world = world;
         this.req = req;
+    }
+
+    private void setGreedyMode(boolean value) {
+        greedy = value;
+    }
+
+    public boolean isGreedy() {
+        return greedy;
     }
 }
