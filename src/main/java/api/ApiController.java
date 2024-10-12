@@ -88,9 +88,13 @@ public class ApiController implements Controller {
             }
             if (info.enemies == null) {
                 info.enemies = new ArrayList<>();
+            } else {
+                info.enemies = info.enemies.stream().filter(e -> e.status.equals("alive")).toList();
             }
             if (info.transports == null) {
                 info.transports = new ArrayList<>();
+            } else {
+                info.transports = info.transports.stream().filter(t -> t.status.equals("alive")).toList();
             }
             if (info.anomalies == null) {
                 info.anomalies = new ArrayList<>();

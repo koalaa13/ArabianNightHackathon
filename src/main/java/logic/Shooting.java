@@ -6,40 +6,24 @@ import java.util.List;
 import java.util.Map;
 
 import model.EnemyTransport;
-import model.HasVelocity;
 import model.MineTransport;
 import model.Point;
 import model.WorldInfo;
 import model.request.Request;
 
 public class Shooting {
-    // Сколько сабтиков (изменений состояний игры) случается в секунду
-    private static final int SUBTICKS_COUNT = 10;
-    private static final int SUBTICKS_SHOT_DELAY = 4;
-    private static final double VELOCITY_DIV = (double) SUBTICKS_SHOT_DELAY / (double) SUBTICKS_COUNT;
-
-    // Куда я (примерно) должен стрелять на упреждение
-    public static Point getFuturePos(HasVelocity hasVelocityModel) {
-        double curX = hasVelocityModel.x;
-        double curY = hasVelocityModel.y;
-
-        double diffX = hasVelocityModel.velocity.x / VELOCITY_DIV;
-        double diffY = hasVelocityModel.velocity.y / VELOCITY_DIV;
-
-        return new Point((int) curX + diffX, (int) curY + diffY);
-    }
-
     // максимально втупую, радиус атаки небольшой
     public static List<Point> getPointsCanShoot(WorldInfo worldInfo, MineTransport transport) {
-        double x = transport.x;
-        double y = transport.y;
+        var nextPosTransport = transport.afterNSeconds(0.4);
+        double x = nextPosTransport.x;
+        double y = nextPosTransport.y;
         double attackRange = worldInfo.attackRange;
         List<Point> res = new ArrayList<>();
 
-        for (int i = (int) Math.max(0.0, x - attackRange); i <= Math.min(worldInfo.mapSize.x, x + attackRange); ++i) {
-            for (int j = (int) Math.max(0.0, y - attackRange); j <= Math.min(worldInfo.mapSize.y, y + attackRange); ++j) {
+        for (int i = (int) Math.max(0.0, x - attackRange); i <= Math.min(worldInfo.mapSize.x, x + attackRange); i += 2) {
+            for (int j = (int) Math.max(0.0, y - attackRange); j <= Math.min(worldInfo.mapSize.y, y + attackRange); j += 2) {
                 Point p = new Point(i, j);
-                double dist = transport.distTo(p);
+                double dist = nextPosTransport.distTo(p);
                 if (dist <= attackRange) {
                     res.add(p);
                 }
@@ -54,7 +38,7 @@ public class Shooting {
     private static List<MineTransport> canShootPoint(Point toShoot, WorldInfo worldInfo) {
         return worldInfo.transports.stream()
                 .filter(Shooting::canTransportShoot)
-                .filter(t -> toShoot.distTo(t) <= worldInfo.attackRange)
+                .filter(t -> toShoot.distTo(t.afterNSeconds(0.4)) <= worldInfo.attackRange)
                 .toList();
     }
 
@@ -67,7 +51,7 @@ public class Shooting {
         double canDealDamage = canShootThisPointCount * worldInfo.attackDamage;
         Metric positive = worldInfo.enemies
                 .stream()
-                .filter(e -> toShoot.distTo(e) <= worldInfo.attackExplosionRadius)
+                .filter(e -> toShoot.distTo(e.afterNSeconds(0.4)) <= worldInfo.attackExplosionRadius)
                 .filter(e -> e.shieldLeftMs == 0)
                 .map(e -> {
                     double cost = e.health > canDealDamage ?
@@ -82,7 +66,7 @@ public class Shooting {
         // Если гасим по своим, то надо это учесть
         Metric negative = worldInfo.transports
                 .stream()
-                .filter(t -> toShoot.distTo(t) <= worldInfo.attackExplosionRadius)
+                .filter(t -> toShoot.distTo(t.afterNSeconds(0.4)) <= worldInfo.attackExplosionRadius)
                 .filter(t -> t.shieldLeftMs == 0)
                 .map(t -> {
                     double cost = t.health > canDealDamage ?
@@ -142,7 +126,7 @@ public class Shooting {
         for (int i = 0; readyToAttackCount > res.size() && i < allPoints.size(); ++i) {
             Point p = allPoints.get(i);
             for (MineTransport t : canShootTransport) {
-                if (t.distTo(p) <= info.attackRange) {
+                if (t.afterNSeconds(0.4).distTo(p) <= info.attackRange) {
                     res.putIfAbsent(t.id, p);
                 }
             }
