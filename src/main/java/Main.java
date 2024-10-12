@@ -14,6 +14,14 @@ public class Main {
     public static final Request EMPTY_REQUEST = new Request()
             .setTransports(Collections.emptyList());
 
+    private static void logWeAreWanted(WorldInfo info) {
+        for (var mineTransport : info.transports) {
+            if (info.wantedList.stream().anyMatch(wl -> wl.x == mineTransport.x && wl.y == mineTransport.y)) {
+                System.err.println(mineTransport.id + " IS WANTED!!!");
+            }
+        }
+    }
+
     public static void main(String[] args) throws InterruptedException {
         final Controller controller = ApiController.getTestInstance();
         WorldInfo info = controller.getInfo(EMPTY_REQUEST);
@@ -56,6 +64,7 @@ public class Main {
                     ".   Avg shoot it: " + (shootTime / it) + " ms., avg move it: " + (moveTime / it) + " ms." +
                     ".   Avg req it: " + (reqTime / it) + " ms., avg graph it: " + (graphTime / it) + " ms.");
             lastIteration = newLastIteration;
+            logWeAreWanted(info);
         }
     }
 }
