@@ -7,12 +7,6 @@ import model.request.RequestTransport;
 import java.util.*;
 
 public class Movement {
-    private static Random random = new Random();
-
-    private static int randomShift() {
-        return random.nextInt(3000) - 1500;
-    }
-
     private static Point getAcc(MineTransport cur, Point dest, double time) {
         var S = dest.sub(cur);
         var A = S.mul(2 / (time * time)).sub(cur.velocity.mul(2 / time)).sub(cur.anomalyAcceleration);
@@ -34,8 +28,8 @@ public class Movement {
     }
 
     public static double minAvailableReachTime(double maxAccel, MineTransport cur, Point dest) {
-        double l = 0.5, r = 15.0;
-        for (int i = 0; i < 15; i++) {
+        double l = 0.5, r = 30.0;
+        for (int i = 0; i < 20; i++) {
             double m = (l + r) / 2;
             if (canReach(maxAccel, cur, dest, m)) {
                 r = m;
@@ -61,7 +55,7 @@ public class Movement {
         for (double t = 0.0; t < 1.6; t += 0.3) {
             dist = Math.min(dist, distFromCoverToPoint(other, cur, acc, t));
         }
-        return dist < 15;
+        return dist < 12;
     }
 
     private static boolean isDangerous(WorldInfo info, MineTransport cur, Point c) {
@@ -86,7 +80,7 @@ public class Movement {
 
     private static Optional<Coin> getBestCoin(WorldInfo info, MineTransport cur) {
         return info.bounties.stream()
-                .filter(c -> cur.distTo(c) < 300)
+                .filter(c -> cur.distTo(c) < 200)
                 .filter(c -> !isDangerous(info, cur, c))
                 .max(Comparator.comparingDouble(c -> c.points - c.distTo(cur)));
     }
@@ -127,6 +121,6 @@ public class Movement {
     }
 
     public static boolean inMoneyZone(MineTransport cur, Point destPoint) {
-        return cur.distTo(destPoint) <= 3000;
+        return cur.distTo(destPoint) <= 4000;
     }
 }

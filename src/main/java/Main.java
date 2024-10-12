@@ -34,7 +34,7 @@ public class Main {
         long reqTime = 0;
         long graphTime = 0;
         for (int it = 1; ; ++it) {
-            Thread.sleep(250);
+            Thread.sleep(220);
             var req = new Request().setTransports(
                     info.transports.stream().filter(t -> t.health > 0).map(t -> new RequestTransport().setId(t.id)
                     ).toList());

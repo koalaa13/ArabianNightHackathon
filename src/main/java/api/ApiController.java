@@ -73,9 +73,9 @@ public class ApiController implements Controller {
         final String url = getApiUrl();
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             final String json = objectMapper.writeValueAsString(requestDao);
-            System.out.println("----------");
-            System.out.println(json);
-            System.out.println("---------");
+//            System.out.println("----------");
+//            System.out.println(json);
+//            System.out.println("---------");
             final StringEntity entity = new StringEntity(json);
 
             HttpPost request = new HttpPost(url + "/play/magcarp/player/move");

@@ -101,10 +101,10 @@ public class GraphVisualizer extends JFrame {
     }
 
     private synchronized void setZoom() {
-        startX = world.mapSize.x * 2 / 5;
-        startY = world.mapSize.y * 2 / 5;
-        endX = world.mapSize.x * 3 / 5;
-        endY = world.mapSize.y * 3 / 5;
+        startX = world.mapSize.x * 3 / 10;
+        startY = world.mapSize.y * 3 / 10;
+        endX = world.mapSize.x * 7 / 10;
+        endY = world.mapSize.y * 7 / 10;
         zoom = getZoom();
         updateGraph();
     }
@@ -114,8 +114,8 @@ public class GraphVisualizer extends JFrame {
                 "Id: " + we.id + "<br>" +
                 "Health: " + we.health + "<br>" +
                 "X: " + (int) we.x + " Y: " + (int) we.y + "<br>" +
-                "VX: " + (int) we.velocity.x + " VY: " + (int) we.velocity.y + " ABS: " + (int) we.velocity.length() + "<br>" +
-                "Collect money: " + Movement.inMoneyZone(we, Movement.moneyCenter(world)) + "<br>";
+                "VX: " + (int) we.velocity.x + " VY: " + (int) we.velocity.y + " ABS: " + (int) we.velocity.length() + "<br>";
+//                "Collect money: " + Movement.inMoneyZone(we, Movement.moneyCenter(world)) + "<br>";
         if (weR.isPresent()) {
             res += "AX: " + (int) weR.get().acceleration.x + " AY: " + (int) weR.get().acceleration.y +
                     " ABS: " + (int) weR.get().acceleration.length() + "<br>";

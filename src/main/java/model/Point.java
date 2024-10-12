@@ -28,6 +28,12 @@ public class Point {
         }
     }
 
+    public Point resize(double maxLength) {
+        double curLength = length();
+        double scale = curLength / maxLength;
+        return new Point(x / scale, y / scale);
+    }
+
     public double distTo(Point to) {
         return new Point(to.x - x, to.y - y).length();
     }
