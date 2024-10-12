@@ -16,8 +16,8 @@ public class WorldInfo {
     public String name;
     public double points;
     public double reviveTimeoutSec;
-    public double shieldCooldownMs;
-    public double shieldTimeMs;
+    public int shieldCooldownMs;
+    public int shieldTimeMs;
     public double transportRadius;
     public List<MineTransport> transports;
     public List<EnemyTransport> wantedList;
