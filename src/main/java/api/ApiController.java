@@ -1,6 +1,7 @@
 package api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -57,10 +58,12 @@ public class ApiController implements Controller {
     private <T> T responseHandling(HttpResponse response, Class<? extends T> okResponseClass) throws IOException {
         var content = response.getEntity().getContent();
         JsonNode node = objectMapper.readTree(content);
-        var errors = (ArrayNode) node.get("errors");
-        if (!errors.isEmpty()) {
-            System.err.println("Some errors!!!!");
-            System.err.println(errors);
+        if (node.has("errors")) {
+            var errors = (ArrayNode) node.get("errors");
+            if (!errors.isEmpty()) {
+                System.err.println("Some errors!!!!");
+                System.err.println(errors);
+            }
         }
         return objectMapper.treeToValue(node, okResponseClass);
     }
@@ -79,7 +82,20 @@ public class ApiController implements Controller {
             request.setHeader(API_AUTH_HEADER, TOKEN);
             request.setEntity(entity);
 
-            return client.execute(request, response -> responseHandling(response, WorldInfo.class));
+            WorldInfo info = client.execute(request, response -> responseHandling(response, WorldInfo.class));
+            if (info.bounties == null) {
+                info.bounties = new ArrayList<>();
+            }
+            if (info.enemies == null) {
+                info.enemies = new ArrayList<>();
+            }
+            if (info.transports == null) {
+                info.transports = new ArrayList<>();
+            }
+            if (info.anomalies == null) {
+                info.anomalies = new ArrayList<>();
+            }
+            return info;
         } catch (IOException e) {
             System.err.println(e);
         }
