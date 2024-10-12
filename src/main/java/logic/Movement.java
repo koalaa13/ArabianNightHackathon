@@ -21,9 +21,9 @@ public class Movement {
         var A = S.mul(2 / (time * time)).sub(V.mul(2 / time)).sub(cur.anomalyAcceleration);
         boolean accGood = A.length() < maxAccel * 9 / 10;
         if (!accGood) return false;
-        var newCur = cur.afterNSecondsNoDelay(A, 0.4);
-        boolean nextSpeedGood = newCur.velocity.length() <= maxAccel;
-        if (!nextSpeedGood) return false;
+//        var newCur = cur.afterNSecondsNoDelay(A, 0.4);
+//        boolean nextSpeedGood = newCur.velocity.length() <= maxAccel;
+//        if (!nextSpeedGood) return false;
         return true;
     }
 
