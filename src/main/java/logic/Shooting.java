@@ -10,6 +10,7 @@ import model.HasVelocity;
 import model.MineTransport;
 import model.Point;
 import model.WorldInfo;
+import model.request.Request;
 
 public class Shooting {
     // Сколько сабтиков (изменений состояний игры) случается в секунду
@@ -158,6 +159,15 @@ public class Shooting {
             }
         }
         return res;
+    }
+
+    public static void setShoots(WorldInfo info, Request req) {
+        var points = getPointsToShoot(info);
+        for (var we : req.transports) {
+            if (points.containsKey(we.id)) {
+                we.setAttack(points.get(we.id));
+            }
+        }
     }
 
     public static void main(String[] args) {

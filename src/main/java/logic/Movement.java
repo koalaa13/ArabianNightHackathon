@@ -8,9 +8,8 @@ import java.util.*;
 
 public class Movement {
     private static Point accToPoint(WorldInfo info, MineTransport cur, Point dest) {
-        var acc = cur.mul(-0.5)
-                .add(cur.anomalyAcceleration.mul(-1))
-                .add(dest.add(cur.add(cur.velocity).mul(-1)).mul(0.2));
+        var acc = cur.anomalyAcceleration.mul(-1)
+                .add(dest.add(cur.afterNSeconds(0.5).mul(-1)));
         return acc.shrink(info.maxAccel * 4 / 5);
     }
 
@@ -42,6 +41,7 @@ public class Movement {
         var destPoint = new Point(info.mapSize.x * 9 / 10, info.mapSize.y * 9 / 10);
         var radius = Math.max(info.mapSize.x, info.mapSize.y) / 10;
         var cur = info.transports.stream().filter(t -> t.id.equals(we.id)).findFirst().get();
+        cur = cur.afterNSeconds(cur.selfAcceleration, 0.4);
         if (cur.x >= destPoint.x - radius && cur.y >= destPoint.y - radius) {
             var bestCoin = getBestCoin(info, cur);
             if (bestCoin.isPresent()) {

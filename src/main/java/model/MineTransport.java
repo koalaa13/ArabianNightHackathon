@@ -1,6 +1,6 @@
 package model;
 
-public class MineTransport extends HasVelocity {
+public class MineTransport extends HasVelocity implements Cloneable {
     public Point anomalyAcceleration;
     public double attackCooldownMs;
     public int deathCount;
@@ -11,10 +11,26 @@ public class MineTransport extends HasVelocity {
     public double shieldLeftMs;
     public String status;
 
-    public Point afterNSeconds(Point acc, double time) {
-        var totalAcc = acc.add(anomalyAcceleration);
-        var shift = velocity.mul(time).add(totalAcc.mul(time * time / 2));
-        return this.add(shift);
+//    private Point getShift(Point acc, double time) {
+//        return velocity.mul(time).add(totalAcc.mul(time * time / 2));
+//    }
+
+    public MineTransport afterNSeconds(Point acc, double time) {
+        try {
+            var t = (MineTransport) clone();
+//            if (time > 0.4) {
+//
+//            } else {
+//
+//            }
+            var totalAcc = acc.add(anomalyAcceleration);
+            var shift = velocity.mul(time).add(totalAcc.mul(time * time / 2));
+            t.x += shift.x;
+            t.y += shift.y;
+            return t;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
