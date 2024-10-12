@@ -12,12 +12,13 @@ import model.WorldInfo;
 import model.request.Request;
 
 public class Shooting {
+    private static final double RANGE_MINUS = 10.0;
     // максимально втупую, радиус атаки небольшой
     public static List<Point> getPointsCanShoot(WorldInfo worldInfo, MineTransport transport) {
         var nextPosTransport = transport.afterNSeconds(0.4);
         double x = nextPosTransport.x;
         double y = nextPosTransport.y;
-        double attackRange = worldInfo.attackRange;
+        double attackRange = worldInfo.attackRange - RANGE_MINUS;
         List<Point> res = new ArrayList<>();
 
         for (int i = (int) Math.max(0.0, x - attackRange); i <= Math.min(worldInfo.mapSize.x, x + attackRange); i += 2) {
